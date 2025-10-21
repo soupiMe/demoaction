@@ -1,4 +1,8 @@
-def ensure_font():
+import os
+import glob
+from reportlab.lib.pagesizes import LETTER
+from reportlab.pdfgen import canvas
+
 
 def convert_txt_to_pdf():
     # Use a built-in font that supports Greek, such as Helvetica
