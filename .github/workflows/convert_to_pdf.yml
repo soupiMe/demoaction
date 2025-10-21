@@ -1,36 +1,51 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: convert-txt-to-pdf
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
+    paths:
+      - 'inbound/**/*.txt'
+      - 'inbound/*.txt'
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  convert:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Install dependencies
+        run: pip install reportlab
+
+      - name: Convert inbound .txt files to PDFs and commit to outbound/
+        env:
+          GIT_AUTHOR_NAME: github-actions
+          GIT_AUTHOR_EMAIL: github-actions@users.noreply.github.com
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          set -e
+          python convert_txt_to_pdf.py
+
+          # stage and commit any changes in outbound/
+          git add outbound || true
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "${GIT_AUTHOR_NAME}"
+            git config user.email "${GIT_AUTHOR_EMAIL}"
+            git commit -m "Convert inbound txt to pdf [skip ci]" || true
+            git push origin HEAD:main
+          else
+            echo "No changes to commit"
+          fi
