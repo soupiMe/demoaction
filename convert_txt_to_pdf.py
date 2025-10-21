@@ -1,5 +1,3 @@
-def convert_txt_to_pdf():
-
 import os
 import glob
 from reportlab.pdfgen import canvas
