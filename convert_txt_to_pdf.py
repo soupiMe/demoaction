@@ -1,22 +1,7 @@
-import os
-import glob
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import LETTER
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-
 def ensure_font():
-    # Download DejaVuSans if not present
-    font_path = "DejaVuSans.ttf"
-    if not os.path.exists(font_path):
-        import urllib.request
-        url = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf"
-        print("Downloading DejaVuSans.ttf...")
-        urllib.request.urlretrieve(url, font_path)
-    pdfmetrics.registerFont(TTFont("DejaVuSans", font_path))
 
 def convert_txt_to_pdf():
-    ensure_font()
+    # Use a built-in font that supports Greek, such as Helvetica
     os.makedirs("outbound", exist_ok=True)
     txt_files = sorted(set(glob.glob("inbound/**/*.txt", recursive=True) + glob.glob("inbound/*.txt")))
     for txt in txt_files:
@@ -25,7 +10,7 @@ def convert_txt_to_pdf():
         with open(txt, 'r', encoding='utf-8', errors='ignore') as f:
             lines = [ln.rstrip('\n') for ln in f]
         c = canvas.Canvas(out, pagesize=LETTER)
-        c.setFont("DejaVuSans", 12)
+        c.setFont("Helvetica", 12)
         width, height = LETTER
         margin_x = 72
         margin_top = 72
@@ -36,7 +21,7 @@ def convert_txt_to_pdf():
         for line in lines:
             if line_count >= max_lines:
                 c.showPage()
-                c.setFont("DejaVuSans", 12)
+                c.setFont("Helvetica", 12)
                 y = height - margin_top
                 line_count = 0
             if len(line) == 0:
